@@ -36,7 +36,7 @@ describe('Suite de Pruebas de Calidad de Software', () => {
 
   describe('Pruebas de Integración - API Endpoints', () => {
     test('GET /health - Debe responder con status 200 y JSON correcto', async () => {
-      const response = await request(app).get('/health');
+      const response = await request(app).get('/h');
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('status', 'OK');
     });
