@@ -19,22 +19,24 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.x'
 
       - name: Install dependencies
         run: npm install
 
       - name: Start Express Server
         run: npm start &
-        # El servidor tarda un poco en subir
       
       - name: Wait for server
         run: npx wait-on http://localhost:3000/health --timeout 30000
 
-      - name: Run k6 load test (Local)
-        uses: grafana/k6-action@v0.3.1
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 load test
+        uses: grafana/run-k6-action@v1
         with:
-          filename: test/load/load-test.js
+          path: test/load/load-test.js
 
       # Paso opcional para enviar a Grafana Cloud (requiere secretos)
       # - name: Run k6 load test and push to Grafana Cloud
