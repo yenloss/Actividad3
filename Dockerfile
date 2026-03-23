@@ -1,13 +1,16 @@
-FROM node:18-slim
-
 WORKDIR /app
 
+# Copiar archivos de dependencias
 COPY package*.json ./
 
+# Instalar dependencias
 RUN npm install
 
+# Copiar todo el código
 COPY . .
 
-EXPOSE 80
+# Exponer el puerto que usa Express por defecto (3000)
+EXPOSE 3000
 
-CMD ["node", "app.js"]
+# Arrancar la aplicación usando el script de Express
+CMD ["node", "./bin/www"]
