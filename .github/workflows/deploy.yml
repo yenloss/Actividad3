@@ -6,6 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  # Usamos una variable para convertir el nombre a minúsculas más adelante
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
@@ -31,13 +32,18 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Forzamos minúsculas en las etiquetas generadas
+          tags: |
+            type=ref,event=branch
+            type=sha
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          # Usamos lowercase para evitar el error de "Invalid reference format"
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/actividad3:main
           labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
@@ -51,12 +57,22 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # 1. Definir el nombre de la imagen en minúsculas manualmente para mayor seguridad
+            IMAGE_LOWER="ghcr.io/${{ github.repository_owner }}/actividad3"
+            
+            # 2. Login en el servidor
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # 3. Limpiar contenedores anteriores
             docker stop my-node-app || true
             docker rm my-node-app || true
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
+            
+            # 4. Bajar la nueva imagen
+            docker pull ${IMAGE_LOWER}:main
+            
+            # 5. Levantar el contenedor (Puerto 80 del servidor al 80 del contenedor)
             docker run -d \
               --name my-node-app \
-              -p 80:3000 \
+              -p 80:80 \
               --restart always \
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
+              ${IMAGE_LOWER}:main
