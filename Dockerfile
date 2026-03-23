@@ -1,16 +1,20 @@
+# ESTA LÍNEA ES OBLIGATORIA (Es el cimiento de todo)
+FROM node:18-slim
+
+# Directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copiar archivos de dependencias
+# Copiamos solo los archivos de dependencias para instalar primero
 COPY package*.json ./
 
-# Instalar dependencias
+# Instalamos las librerías de Node
 RUN npm install
 
-# Copiar todo el código
+# Copiamos el resto de los archivos (app.js, bin/, public/, etc.)
 COPY . .
 
-# Exponer el puerto que usa Express por defecto (3000)
+# El puerto que usa Express por defecto
 EXPOSE 3000
 
-# Arrancar la aplicación usando el script de Express
+# El comando para arrancar la app usando el archivo de configuración de Express
 CMD ["node", "./bin/www"]
