@@ -2,24 +2,17 @@ name: CI Pipeline - Análisis SAST con SonarQube
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   sonarQube-analysis:
-    name: Análisis de Calidad de Código
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Clonación del repositorio (Checkout)
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Requerido para ver el historial de errores
+          fetch-depth: 0
 
-      - name: Ejecución de Escáner SonarQube
+      - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -27,5 +20,3 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=mi-proyecto-gestion-sw
-            -Dsonar.python.version=3
-            -Dsonar.sources=.
