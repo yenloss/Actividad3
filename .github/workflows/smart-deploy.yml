@@ -17,6 +17,7 @@ jobs:
           host: 35.208.11.45
           username: g2016348092
           key: ${{ secrets.SSH_KEY }}
+          fingerprint: "SHA256:kLQPAj/8xxkctJmqmGIw4fXwAOy1havz1ROyzmZpTTA"
           script: |
           
             if [ -f ~/current_deploy.env ]; then
