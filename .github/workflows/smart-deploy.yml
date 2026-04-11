@@ -17,22 +17,21 @@ jobs:
           host: 35.208.11.45
           username: g2016348092
           key: ${{ secrets.SSH_KEY }}
-          # Ignora la verificación de host para evitar que se quede trabado
+          
           fingerprint: "SHA256:kLQPAj/8xxkctJmqmGIw4fXwAOy1havz1ROyzmZpTTA"
           script_stop: true
           script: |
-            # 1. Definir rutas absolutas (Ruta real en tu servidor GCP)
+            
             STATE_FILE="/home/g2016348092/current_deploy.env"
             TEMPLATE="/home/g2016348092/nginx.conf.template"
 
-            # 2. Cargar el estado actual o inicializar en blue
+            
             if [ -f "$STATE_FILE" ]; then
                 source "$STATE_FILE"
             else
                 DEPLOY_COLOR=blue
             fi
 
-            # 3. Lógica de Inversión (Toggle)
             if [ "$DEPLOY_COLOR" == "blue" ]; then
                 export TARGET_COLOR="green"
                 export TARGET_PORT="8081"
@@ -43,20 +42,20 @@ jobs:
 
             echo "Estado actual: $DEPLOY_COLOR. Cambiando a: $TARGET_COLOR en puerto $TARGET_PORT"
 
-            # 4. Preparar variables para Nginx
+        
             export APP_TARGET_IP="127.0.0.1"
             export APP_TARGET_PORT="$TARGET_PORT"
             export DEPLOYMENT_COLOR="$TARGET_COLOR"
 
-            # 5. Generar configuración y moverla (Sustitución Automática)
-            # Usamos sudo para asegurar que se pueda escribir en /etc/nginx/
+            
+        
             sudo envsubst '$APP_TARGET_IP $APP_TARGET_PORT $DEPLOYMENT_COLOR' < "$TEMPLATE" > /tmp/default.conf
             sudo mv /tmp/default.conf /etc/nginx/conf.d/default.conf
 
-            # 6. Validación Crítica y Recarga
+           
             if sudo nginx -t; then
                 sudo systemctl reload nginx
-                # Actualizar el archivo de persistencia para el siguiente push
+                
                 echo "DEPLOY_COLOR=$TARGET_COLOR" > "$STATE_FILE"
                 echo "¡EXITO! Ahora el servidor responde en color $TARGET_COLOR"
             else
