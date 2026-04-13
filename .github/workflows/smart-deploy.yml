@@ -16,9 +16,8 @@ jobs:
         with:
           host: 35.208.11.45
           username: g2016348092 
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }} 
           port: 22
-          # Usamos timeout genérico para evitar el warning anterior
           timeout: 40s
           script: |
             # Rutas absolutas
