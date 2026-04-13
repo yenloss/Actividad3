@@ -18,22 +18,21 @@ jobs:
           username: g2016348092
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          
-          connect_timeout: 30s
-          timeout: 60s
-        
-          fingerprint: "SHA256:kLQPAj/8xxkctJmqmGIw4fXwAOy1havz1ROyzmZpTTA"
+          # Usamos timeout genérico para evitar el warning anterior
+          timeout: 40s
           script: |
             # Rutas absolutas
             STATE_FILE="/home/g2016348092/current_deploy.env"
             TEMPLATE="/home/g2016348092/nginx.conf.template"
 
+            # 1. Cargar estado
             if [ -f "$STATE_FILE" ]; then
                 source "$STATE_FILE"
             else
                 DEPLOY_COLOR=blue
             fi
 
+            # 2. Inversión de color
             if [ "$DEPLOY_COLOR" == "blue" ]; then
                 TARGET_COLOR="green"
                 TARGET_PORT="8081"
@@ -44,14 +43,12 @@ jobs:
 
             echo "Cambiando de $DEPLOY_COLOR a $TARGET_COLOR"
 
-            
+            # 3. Sustitución y aplicación
             export APP_TARGET_IP="127.0.0.1"
             export APP_TARGET_PORT="$TARGET_PORT"
             export DEPLOYMENT_COLOR="$TARGET_COLOR"
 
             envsubst '$APP_TARGET_IP $APP_TARGET_PORT $DEPLOYMENT_COLOR' < "$TEMPLATE" > /tmp/default.conf
-
-            
             sudo mv /tmp/default.conf /etc/nginx/conf.d/default.conf
             
             if sudo nginx -t; then
@@ -59,6 +56,6 @@ jobs:
                 echo "DEPLOY_COLOR=$TARGET_COLOR" > "$STATE_FILE"
                 echo "SUCCESS: Desplegado en $TARGET_COLOR"
             else
-                echo "ERROR: Nginx falló"
+                echo "ERROR: Falló Nginx"
                 exit 1
             fi
