@@ -17,48 +17,50 @@ jobs:
           host: 35.208.11.45
           username: g2016348092
           key: ${{ secrets.SSH_KEY }}
-          
+          port: 22
+          # Tiempos de espera para que no se quede colgado
+          connect_timeout: 30s
+          timeout: 60s
+          # Esto evita que se quede esperando el "yes/no" del host
           fingerprint: "SHA256:kLQPAj/8xxkctJmqmGIw4fXwAOy1havz1ROyzmZpTTA"
-          script_stop: true
           script: |
-            
+            # Rutas absolutas
             STATE_FILE="/home/g2016348092/current_deploy.env"
             TEMPLATE="/home/g2016348092/nginx.conf.template"
 
-            
+            # 1. Cargar estado
             if [ -f "$STATE_FILE" ]; then
                 source "$STATE_FILE"
             else
                 DEPLOY_COLOR=blue
             fi
 
+            # 2. Inversión
             if [ "$DEPLOY_COLOR" == "blue" ]; then
-                export TARGET_COLOR="green"
-                export TARGET_PORT="8081"
+                TARGET_COLOR="green"
+                TARGET_PORT="8081"
             else
-                export TARGET_COLOR="blue"
-                export TARGET_PORT="8080"
+                TARGET_COLOR="blue"
+                TARGET_PORT="8080"
             fi
 
-            echo "Estado actual: $DEPLOY_COLOR. Cambiando a: $TARGET_COLOR en puerto $TARGET_PORT"
+            echo "Cambiando de $DEPLOY_COLOR a $TARGET_COLOR"
 
-        
+            # 3. Sustitución (Sin sudo para evitar bloqueos de contraseña)
             export APP_TARGET_IP="127.0.0.1"
             export APP_TARGET_PORT="$TARGET_PORT"
             export DEPLOYMENT_COLOR="$TARGET_COLOR"
 
-            
-        
-            sudo envsubst '$APP_TARGET_IP $APP_TARGET_PORT $DEPLOYMENT_COLOR' < "$TEMPLATE" > /tmp/default.conf
-            sudo mv /tmp/default.conf /etc/nginx/conf.d/default.conf
+            envsubst '$APP_TARGET_IP $APP_TARGET_PORT $DEPLOYMENT_COLOR' < "$TEMPLATE" > /tmp/default.conf
 
-           
+            # 4. Mover y Recargar (Aquí sí usamos sudo)
+            sudo mv /tmp/default.conf /etc/nginx/conf.d/default.conf
+            
             if sudo nginx -t; then
                 sudo systemctl reload nginx
-                
                 echo "DEPLOY_COLOR=$TARGET_COLOR" > "$STATE_FILE"
-                echo "¡EXITO! Ahora el servidor responde en color $TARGET_COLOR"
+                echo "SUCCESS: Desplegado en $TARGET_COLOR"
             else
-                echo "ERROR: La configuración de Nginx falló."
+                echo "ERROR: Nginx falló"
                 exit 1
             fi
